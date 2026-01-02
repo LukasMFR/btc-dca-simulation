@@ -114,6 +114,7 @@ def try_gui_date_range(default_start: date, default_end: date):
     """
     try:
         import tkinter as tk
+        import tkinter.ttk as ttk
         from tkcalendar import DateEntry
     except Exception:
         return None
@@ -142,15 +143,41 @@ def try_gui_date_range(default_start: date, default_end: date):
     root.geometry("420x180")
     root.resizable(False, False)
 
+    # ✅ FIX macOS: force a ttk theme that doesn't break DateEntry dropdown (aqua is problematic)
+    try:
+        style = ttk.Style(root)
+        style.theme_use("clam")  # important on macOS
+    except Exception:
+        pass
+
+    # ✅ Make the window responsive / modal-like (helps click & popup behavior on macOS)
+    try:
+        root.lift()
+        root.focus_force()
+        root.grab_set()
+        root.attributes("-topmost", True)
+        root.after(100, lambda: root.attributes("-topmost", False))
+    except Exception:
+        pass
+
     tk.Label(root, text="Date de début").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-    start_cal = DateEntry(root, width=16, date_pattern="yyyy-mm-dd")
+    start_cal = DateEntry(root, width=16, date_pattern="yyyy-mm-dd", state="readonly")
     start_cal.set_date(default_start)
-    start_cal.grid(row=0, column=1, padx=10, pady=10)
+    start_cal.grid(row=0, column=1, padx=10, pady=10, sticky="w")
 
     tk.Label(root, text="Date de fin").grid(row=1, column=0, padx=10, pady=10, sticky="w")
-    end_cal = DateEntry(root, width=16, date_pattern="yyyy-mm-dd")
+    end_cal = DateEntry(root, width=16, date_pattern="yyyy-mm-dd", state="readonly")
     end_cal.set_date(default_end)
-    end_cal.grid(row=1, column=1, padx=10, pady=10)
+    end_cal.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+
+    # Some setups behave better with overrideredirect(False)
+    def _fix_overrideredirect():
+        for w in (start_cal, end_cal):
+            try:
+                w._top_cal.overrideredirect(False)
+            except Exception:
+                pass
+    root.after(200, _fix_overrideredirect)
 
     msg = tk.Label(root, text="", fg="red")
     msg.grid(row=2, column=0, columnspan=2, padx=10)
