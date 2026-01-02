@@ -340,6 +340,9 @@ def simulate_dca(prices: pd.Series, start: date, end: date, amount_eur: float, f
     net = amount_eur * (1.0 - fee_rate)
     btc_bought = (net / buy_prices).fillna(0.0)
 
+    # total fees paid (EUR)
+    fees_total_eur = float(len(btc_bought) * amount_eur * fee_rate)
+
     # align buys on daily index
     btc_buys_daily = pd.Series(0.0, index=idx)
     btc_buys_daily.loc[btc_bought.index] = btc_bought.values
@@ -381,6 +384,7 @@ def simulate_dca(prices: pd.Series, start: date, end: date, amount_eur: float, f
         "frequency": freq,
         "every": int(every),
         "fee_rate": float(fee_rate),
+        "fees_total_eur": fees_total_eur,
         "invested_eur": float(df["invested_eur"].iloc[-1]),
         "final_value_eur": float(df["value_eur"].iloc[-1]),
         "profit_eur": float(df["value_eur"].iloc[-1] - df["invested_eur"].iloc[-1]),
@@ -419,7 +423,7 @@ def save_outputs(run_dir: str, sim_df: pd.DataFrame, stats: dict, source_csv_pat
     plt.figure(figsize=(10,4))
     plt.plot(sim_df.index, sim_df["invested_eur"], label="Total investi")
     plt.plot(sim_df.index, sim_df["value_eur"], label="Valeur portefeuille (DCA)")
-    plt.title("DCA BTC — valeur vs investi")
+    plt.title(f"DCA BTC — valeur vs investi (frais: {stats['fees_total_eur']:.0f} €)")
     plt.xlabel("Date"); plt.ylabel("€")
     plt.legend()
     plt.tight_layout()
@@ -492,6 +496,7 @@ def main():
     print(f"Période           : {stats['period_start_fr']} → {stats['period_end_fr']}")
     print(f"Achats            : {stats['buy_count']} × {stats['amount_eur_per_buy']:.2f} €  (tous les {every} {freq_label})")
     print(f"Frais             : {stats['fee_rate']*100:.2f} % / achat")
+    print(f"Coût des frais    : {fmt_money(stats['fees_total_eur'])} €")
     print(f"Total investi     : {fmt_money(stats['invested_eur'])} €")
     print(f"Valeur finale     : {fmt_money(stats['final_value_eur'])} €")
     print(f"Gain              : {fmt_money(stats['profit_eur'])} €")
