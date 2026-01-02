@@ -496,7 +496,7 @@ def main():
     print(f"Valeur finale     : {fmt_money(stats['final_value_eur'])} €")
     print(f"Gain              : {fmt_money(stats['profit_eur'])} €")
     print(f"Multiple          : x{stats['multiple']:.2f}")
-    print(f"TRI (annualisé)   : {stats['tri_annualized']*100:.1f}% / an")
+    print(f"TRI (annualisé)   : {stats['tri_annualized']*100:.1f} % / an")
     print(f"Pire drawdown     : {stats['max_drawdown']*100:.1f}%")
 
     print(f"\n📁 Outputs: {run_dir}")
